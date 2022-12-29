@@ -3,8 +3,11 @@
 # @Author : Dison
 from enum import Enum
 from typing import Optional, List
+from datetime import date
 
-from fastapi import APIRouter, Path, Query
+from fastapi import APIRouter, Path, Query, Cookie, Header
+
+from pydantic import BaseModel, Field
 
 app03 = APIRouter()
 
@@ -68,3 +71,85 @@ def query_params_validate(value: str = Query(..., min_length=8, max_length=16, r
 						  ):
 	# 多个查询参数列表参数别名
 	return value, values
+
+
+"""  请求体和字段 """
+
+
+class CityInfo(BaseModel):
+	name: str = Field(..., example="Beijing")  # example是注解作用 不会验证
+	country: str
+	country_code: str = None  # 给默认值
+	country_population: int = Field(default=800, title="人口数量", description="国家人口数量", ge=800)
+
+	class Config:
+		schema_extra = {
+			"example": {
+				"name": "Shanghai",
+				"country": "China",
+				"country_code": "CN",
+				"country_population": 140000000,
+
+			}
+		}
+
+
+@app03.post("/request_body/city")
+def city_info(city: CityInfo):
+	print(city.name, city.country)
+	return city.dict()
+
+
+""" 多参数混合"""
+
+
+@app03.put("/request_body/city/{name}")
+def mix_city_info(
+		name: str,
+		city01: CityInfo,
+		city02: CityInfo,  # body可以定义多个
+		confirmed: int = Query(ge=0, description="确诊数", default=0),
+		death: int = Query(ge=0, description="死亡数", default=0)
+
+):
+	if name == "Shanghai":
+		return {"Shanghai": {"confirmed": confirmed, "death": death}}
+	return city01.dict(), city02.dict()
+
+
+"""  数据格式嵌套的请求体 """
+
+
+class Data(BaseModel):
+	city: List[CityInfo] = None  # 定义数据格式嵌套的请求体
+	date: date
+	confirmed: int = Field(ge=0, description="确诊数", default=0)
+	death: int = Field(ge=0, description="死亡数", default=0)
+	recovered: int = Field(ge=0, description="痊愈数", default=0)
+
+
+@app03.put("request_body/nested")
+def nested_models(data: Data):
+	return data
+
+
+""" cookie 和Header 参数 """
+
+
+@app03.get("/cookie")  # 效果只能通过postman测试
+def cookie(cookie_id: Optional[str] = Cookie(None)):  # 定义Cookie参数需要使用Cookie类
+	return {"cookie_id": cookie_id}
+
+
+@app03.get("header")
+def header(user_agent: Optional[str] = Header(None, convert_underscores=True),
+		   x_token: List[str] = Header(None)
+		   ):
+	"""
+
+	:param user_agent:  convert_underscores 转换参数  user_agent -> user-agent
+	:param x_token:  x_token包含多个值的列表
+	:return:
+	"""
+
+	return {"User-Agent": user_agent, "x_token": x_token}
