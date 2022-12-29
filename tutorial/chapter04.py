@@ -112,3 +112,30 @@ async def upload_files(files: List[UploadFile] = File(...)):
 		contents = await file.read()
 		print(contents)
 	return {"filename": files[0].filename, "content_type": files[0].content_type}
+
+
+""" fastapi 项目的静态文件配置  run.py """
+
+""" 路径操作配置 """
+
+
+@app04.post(
+	"/path_operation_configuration",
+	response_model=UserOut,
+	# tags=["Path", "Operation", "Configuration"],   # 接口分类 文档中展示
+	summary="this is summary",
+	description="this is description",
+	response_description="this is response description",
+	# deprecated=True,    # 表示接口废弃
+	status_code=status.HTTP_200_OK
+)
+async def path_operation_configuration(user: UserIn):
+	"""
+	path_operation_configuration 路径操作配置
+	:param user: 用户信息
+	:return: 返回结果
+	"""
+	return user.dict()
+
+
+"""应用常见配置 run.py"""
