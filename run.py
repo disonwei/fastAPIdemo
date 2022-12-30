@@ -19,7 +19,8 @@ app = FastAPI(
 	description="FastApi 测试文档",
 	version="1.0.0",
 	docs_url="/docs",
-	redoc_url="/redocs"
+	redoc_url="/redocs",
+	# dependencies=[Depends(verify_token), Depends(verify_key)  全局依赖
 )
 
 # mount 表示将某个目录下一个完全独立的应用挂载过来，api不会显示在文档中
