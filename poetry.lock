@@ -124,6 +124,20 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
+name = "jinja2"
+version = "3.1.2"
+description = "A very fast and expressive template engine."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+MarkupSafe = ">=2.0"
+
+[package.extras]
+i18n = ["Babel (>=2.7)"]
+
+[[package]]
 name = "jose"
 version = "1.0.0"
 description = "An implementation of the JOSE draft"
@@ -133,6 +147,14 @@ python-versions = "*"
 
 [package.dependencies]
 pycrypto = ">=2.6"
+
+[[package]]
+name = "markupsafe"
+version = "2.1.1"
+description = "Safely add untrusted strings to HTML/XML markup."
+category = "main"
+optional = false
+python-versions = ">=3.7"
 
 [[package]]
 name = "passlib"
@@ -308,7 +330,7 @@ standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "401d598014b98a1a963c947e9b185028f1147e2a3da9c273117edd62e3018783"
+content-hash = "4ea0a9c6956f1a5767811c7e35a90a9ba5c8ab38641cf7593d7c45bf190a1fd1"
 
 [metadata.files]
 anyio = []
@@ -321,7 +343,9 @@ fastapi = []
 greenlet = []
 h11 = []
 idna = []
+jinja2 = []
 jose = []
+markupsafe = []
 passlib = []
 pyasn1 = []
 pycrypto = []

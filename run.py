@@ -6,6 +6,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from coronavirus import application
 from tutorial import app03, app04, app05, app06, app07, app08
 
 from fastapi.exceptions import RequestValidationError
@@ -25,7 +26,6 @@ app = FastAPI(
 
 # mount 表示将某个目录下一个完全独立的应用挂载过来，api不会显示在文档中
 app.mount(path="/static", app=StaticFiles(directory="./coronavirus/static"), name="static")
-
 
 # # 重写HTTPException异常处理
 # @app.exception_handlers(StarletteHTTPException)
@@ -55,6 +55,8 @@ app.include_router(app03, prefix="/chapter03", tags=["第三章 请求参数和�
 app.include_router(app04, prefix="/chapter04", tags=["第四章 响应处理和fastapi配置"])
 app.include_router(app05, prefix="/chapter05", tags=["第五章 fastapi依赖注入系统"])
 app.include_router(app06, prefix="/chapter06", tags=["第六章 安全、认证授权"])
+app.include_router(app07, prefix="/chapter07", tags=["第七章 数据库操作目录文件设计"])
+app.include_router(application, prefix="/coronavirus", tags=["新冠病毒疫情根据API"])
 
 if __name__ == '__main__':
 	uvicorn.run("run:app", host="0.0.0.0", port=8000, reload=True, workers=1)

@@ -15,6 +15,7 @@ python-multipart = "^0.0.5"
 passlib = "^1.7.4"
 jose = "^1.0.0"
 python-jose = "^3.3.0"
+Jinja2 = "^3.1.2"
 
 [tool.poetry.dev-dependencies]
 
