@@ -2,12 +2,13 @@
 # @Time : 2022/12/30
 # @Author : Dison
 from typing import List
+import requests
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
-
+from pydantic import HttpUrl
 from coronavirus import crud, schemas
 from coronavirus.database import engine, SessionLocal, Base
 from coronavirus.models import City, Data
@@ -65,6 +66,55 @@ def create_data_for_city(city: str, data: schemas.CreateData, db: Session = Depe
 def get_data(city: str = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 	data = crud.get_data(db=db, city=city, skip=skip, limit=limit)
 	return data
+
+
+def bg_task(url: HttpUrl, db: Session):
+	""""不要再后台任务的参数中 db:Session=Depends(get_db)导入依赖"""
+	city_data = requests.get(url=f"{url}?source=jhu&country_code=CN&timelines=false")
+	if city_data.status_code == 200:
+		# 同步数据前清空原有数据
+		db.query(City).delete()
+		for location in city_data.json()["locations"]:
+			city = {
+				"province": location["province"],
+				"country": location["country"],
+				"country_code": "CN",
+				"country_population": location["country_population"]
+			}
+			crud.create_city(db=db, city=schemas.CreateCity(**city))
+
+	else:
+		print(f"{url}: 数据获取失败！")
+
+
+	coronavirus_data = requests.get(url=f"{url}?source=jhu&country_code=CN&timelines=true")
+	if city_data.status_code == 200:
+		db.query(Data).delete()
+		for city in coronavirus_data.json()["llocations"]:
+			db_city = crud.get_city_by_name(db=db, name=city["province"])
+			for date, confirmed in city["timelines"]["confirmed"]["timeline"].items():
+				data = {
+					"date": date.split("T")[0],
+					"confirmed": confirmed,
+					"deaths": city["timelines"]["deaths"]["timeline"][date],
+					"recovered": 0
+				}
+				crud.create_city_data(db=db, data=schemas.CreateData(**data), city_id=db_city.id)
+
+
+@application.get("/sync_coronavirus_data/jhu")
+def sync_coronavirus_data(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+	"""
+	从johns 同步数据
+	:param background_tasks: 
+	:param db: 
+	:return: 
+	"""
+	url = "https://coronavirus-tracker-api.herokuapp.com/v2/locations"
+	background_tasks.add_task(bg_task, url, db)
+	return {
+		"message": "正在同步数据"
+	}
 
 
 @application.get("/")
